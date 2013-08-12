@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 
+'''
+Main script for running the NLPNET GUI.
+'''
+
 import os
 import wx
 
 import main_panel
+
+# the whole system version
+VERSION = '1.0'
 
 class MainWindow(wx.Frame):
     '''
@@ -11,7 +18,15 @@ class MainWindow(wx.Frame):
     '''
     
     def __init__(self, title):
-        wx.Frame.__init__(self, parent=None, title=title)
+        # show a splash screen while the taggers are loaded
+        splash = self._show_splash()
+        
+        # start the frame occupying 70% of the display.
+        # seems a good proportion
+        x, y = wx.DisplaySize()
+        wx.Frame.__init__(self, parent=None, title=title, 
+                          size=(0.7*x, 0.7*y))
+        
     
         self.CreateStatusBar()
         
@@ -34,7 +49,18 @@ class MainWindow(wx.Frame):
         
         self.panel = main_panel.MainPanel(self)
         
+        splash.Destroy()
         self.Show()
+    
+    def _show_splash(self):
+        '''
+        Shows a splash screen. Simple as that.
+        '''
+        bitmap = wx.Bitmap('../splash.bmp')
+        splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_PARENT,
+                                 0, None)
+        splash.Show()
+        return splash
     
     def on_open(self, event):
         '''
@@ -47,15 +73,21 @@ class MainWindow(wx.Frame):
             path = os.path.join(dirname, filename)
             with open(path, 'r') as f:
                 text = f.read()
+            self.panel.set_input_text(text)
+        
         dialog.Destroy()
-        self.panel.set_input_text(text)
+        
         
     def on_about(self, event):
-        dialog = wx.MessageDialog(self, "This is a graphical interface for using the \
-NLPNET tool. Developed by Erick Rocha Fonseca (erickrfonseca@gmail.com).", 
-            "NLPNET Graphical User Interface", wx.OK)
-        dialog.ShowModal()
-        dialog.Destroy()
+        info = wx.AboutDialogInfo()
+        info.SetName('NLPNET Graphical User Interface')
+        info.SetVersion(VERSION)
+        info.SetWebSite('https://github.com/erickrf/nlpnet')
+        with open('../desc.txt', 'r') as f:
+            text = f.read()
+        info.SetDescription(text)
+        
+        wx.AboutBox(info)
     
     def on_exit(self, event):
         """
