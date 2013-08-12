@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 from itertools import izip
 import wx
 
@@ -14,38 +15,110 @@ class MainPanel(wx.Panel):
     
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent)
+        self._init_grid()
         
-        # the two text areas
-        # one for the input text and the other for the output
-        self.label_in = wx.StaticText(self, label='Text to tag:')
-        self.text_in = wx.TextCtrl(self,
-                                   style=wx.TE_MULTILINE)
-        self.output = wx.StaticText(self, label='Output:')
-        self.text_out = wx.TextCtrl(self,
-                                   style=wx.TE_MULTILINE)
-        
-        button = wx.Button(self, label="Run")
-        self.Bind(wx.EVT_BUTTON, self.on_run, button)
-        self.radio_pos = wx.RadioButton(self, label='POS', style=wx.RB_GROUP)
-        self.radio_srl = wx.RadioButton(self, label='SRL')
-        
-        sb_buttons = wx.StaticBox(self, label="Options")
-        self.button_sizer = wx.StaticBoxSizer(sb_buttons, wx.VERTICAL)
-        self.button_sizer.Add(button, 1, 
-                              flag=wx.ALIGN_CENTER | wx.EXPAND | wx.ALL,
-                              border=5)
-        self.button_sizer.Add(self.radio_pos, 1)
-        self.button_sizer.Add(self.radio_srl, 1)
-        
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.text_in, 1, wx.ALL | wx.EXPAND, border=10)
-        self.sizer.Add(self.button_sizer)
-        self.sizer.Add(self.text_out, 1, wx.ALL | wx.EXPAND, border=10)
-        
-        self.SetSizer(self.sizer)
+        self.Bind(wx.EVT_BUTTON, self.on_run, self.button_run)
+        self.Bind(wx.EVT_BUTTON, self.on_load, self.button_load)
+        self.Bind(wx.EVT_BUTTON, self.on_save, self.button_save)
         
         self.pos_tagger = run.tag_pos()
         self.srl_tagger = run.tag_srl()
+    
+    def _init_grid(self):
+        '''
+        Initializes the grid containing the panel's objects.
+        A flexible grid main_sizer is used to allow a top row with 
+        labels, a second with buttons, then a third row with the text
+        areas.
+        '''
+        # the two text areas
+        # one for the input text and the other for the output
+        label_in = wx.StaticText(self, label='Text to tag')
+        self.button_load = wx.Button(self, label='Load')
+        self.text_in = wx.TextCtrl(self,
+                                   style=wx.TE_MULTILINE)
+        label_out = wx.StaticText(self, label='Output')
+        self.button_save = wx.Button(self, label='Save')
+        self.text_out = wx.TextCtrl(self,
+                                   style=wx.TE_MULTILINE)
+        
+        self.button_run = wx.Button(self, label="Run")
+        self.radio_pos = wx.RadioButton(self, label='POS', style=wx.RB_GROUP)
+        self.radio_srl = wx.RadioButton(self, label='SRL')
+        
+        button_box = wx.StaticBox(self, label="Options")
+        button_sizer = wx.StaticBoxSizer(button_box, wx.VERTICAL)
+        button_sizer.Add(self.button_run, 1, 
+                              flag=wx.ALIGN_CENTER | wx.EXPAND | wx.ALL,
+                              border=5)
+        button_sizer.Add(self.radio_pos, 1)
+        button_sizer.Add(self.radio_srl, 1)
+        
+        main_sizer = wx.FlexGridSizer(rows=3, cols=3, vgap=10, hgap=5)
+        
+        # top row, only labels
+        main_sizer.Add(label_in)
+        main_sizer.Add((0, 0)) # empty cell
+        main_sizer.Add(label_out)
+        
+        # middle row, buttons
+        main_sizer.Add(self.button_load)
+        main_sizer.Add((0, 0)) # empty cell
+        main_sizer.Add(self.button_save)
+        
+        # bottom row, text areas and the main command
+        main_sizer.Add(self.text_in, 1, wx.EXPAND)
+        main_sizer.Add(button_sizer)
+        main_sizer.Add(self.text_out, 1, wx.EXPAND)
+        
+        # the second row contains the text areas in the first and 
+        # third columns
+        main_sizer.AddGrowableRow(2, 1)
+        main_sizer.AddGrowableCol(0, 1)
+        main_sizer.AddGrowableCol(2, 1)
+        
+        # add an outer box main_sizer to insert borders
+        outer_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        outer_sizer.Add(main_sizer, 1, wx.ALL | wx.EXPAND, border=10)
+        
+        self.SetSizer(outer_sizer)
+    
+    def on_load(self, event):
+        '''
+        Opens a file to be processed.
+        '''
+        dialog = wx.FileDialog(self, "Choose a text file", style=wx.FD_OPEN)
+        if dialog.ShowModal() == wx.ID_OK:
+            filename = dialog.GetFilename()
+            dirname = dialog.GetDirectory()
+            path = os.path.join(dirname, filename)
+            with open(path, 'r') as f:
+                text = f.read()
+            self.text_in.SetValue(text)
+        
+        dialog.Destroy()
+    
+    def on_save(self, event):
+        '''
+        Saves the output to a file
+        '''
+        dialog = wx.FileDialog(self, 'Choose file to save', 
+                               style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dialog.SetFilename('nlpnet-output.txt')
+        if dialog.ShowModal() == wx.ID_OK:
+            filename = dialog.GetFilename()
+            dirname = dialog.GetDirectory()
+            path = os.path.join(dirname, filename)
+            try:
+                with open(path, 'w') as f:
+                    f.write(self.text_out.GetValue())
+            except IOError:
+                error_dlg = wx.MessageDialog(self, 'Error trying to write file.',
+                                             'Error', style=wx.OK | wx.ICON_ERROR)
+                error_dlg.ShowModal()
+                error_dlg.Destroy()
+        
+        dialog.Destroy()
     
     def on_run(self, event):
         '''
@@ -132,10 +205,5 @@ class MainPanel(wx.Panel):
             # line break after each sent
             self.text_out.AppendText('\n')
     
-    def set_input_text(self, text):
-        '''
-        Shows the given text in the input text field.
-        '''
-        self.text_in.SetValue(text)
     
     

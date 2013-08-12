@@ -4,7 +4,6 @@
 Main script for running the NLPNET GUI.
 '''
 
-import os
 import wx
 
 import main_panel
@@ -27,24 +26,20 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, parent=None, title=title, 
                           size=(0.7*x, 0.7*y))
         
-    
         self.CreateStatusBar()
         
-        menu_file = wx.Menu()
-        item_open = menu_file.Append(wx.ID_OPEN, "&Open file", "Open a file")
-        menu_file.AppendSeparator()
-        item_about = menu_file.Append(wx.ID_ABOUT, "&About", 
-                                     "Information about this program")
-        menu_file.AppendSeparator()
-        item_exit = menu_file.Append(wx.ID_EXIT,"E&xit", 
-                                    "Terminate the program")
+        menu_program = wx.Menu()
+        item_about = menu_program.Append(wx.ID_ABOUT, "&About", 
+                                         "Information about this program")
+        menu_program.AppendSeparator()
+        item_exit = menu_program.Append(wx.ID_EXIT,"E&xit", 
+                                        "Terminate the program")
         
-        self.Bind(wx.EVT_MENU, self.on_open, item_open)
         self.Bind(wx.EVT_MENU, self.on_about, item_about)
         self.Bind(wx.EVT_MENU, self.on_exit, item_exit)
         
         menubar = wx.MenuBar()
-        menubar.Append(menu_file, "&File")
+        menubar.Append(menu_program, "&Program")
         self.SetMenuBar(menubar)
         
         self.panel = main_panel.MainPanel(self)
@@ -62,22 +57,6 @@ class MainWindow(wx.Frame):
         splash.Show()
         return splash
     
-    def on_open(self, event):
-        '''
-        Opens a file to be processed.
-        '''
-        dialog = wx.FileDialog(self, "Choose a text file", style=wx.FD_OPEN)
-        if dialog.ShowModal() == wx.ID_OK:
-            filename = dialog.GetFilename()
-            dirname = dialog.GetDirectory()
-            path = os.path.join(dirname, filename)
-            with open(path, 'r') as f:
-                text = f.read()
-            self.panel.set_input_text(text)
-        
-        dialog.Destroy()
-        
-        
     def on_about(self, event):
         info = wx.AboutDialogInfo()
         info.SetName('NLPNET Graphical User Interface')
