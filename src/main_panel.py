@@ -92,9 +92,21 @@ class MainPanel(wx.Panel):
             filename = dialog.GetFilename()
             dirname = dialog.GetDirectory()
             path = os.path.join(dirname, filename)
-            with open(path, 'r') as f:
-                text = f.read()
-            self.text_in.SetValue(text)
+            
+            try:
+                with open(path, 'r') as f:
+                    text = f.read()
+                print type(text)
+                utext = text.decode('utf-8')
+            except UnicodeDecodeError:
+                dlg = wx.MessageDialog(self, 'Error trying to open file.\n\
+Be sure that your input file is encoded in UTF-8 or pure ASCII.',
+                                             'Error', style=wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+                
+            self.text_in.SetValue(utext)
         
         dialog.Destroy()
     
@@ -109,9 +121,10 @@ class MainPanel(wx.Panel):
             filename = dialog.GetFilename()
             dirname = dialog.GetDirectory()
             path = os.path.join(dirname, filename)
+            text = self.text_out.GetValue()
             try:
                 with open(path, 'w') as f:
-                    f.write(self.text_out.GetValue())
+                    f.write(text.encode('utf-8'))
             except IOError:
                 error_dlg = wx.MessageDialog(self, 'Error trying to write file.',
                                              'Error', style=wx.OK | wx.ICON_ERROR)
@@ -199,7 +212,7 @@ class MainPanel(wx.Panel):
             # the asterisk tells izip to treat the elements in the list as separate arguments
             the_iter = izip(tokens, predicates, *tags)
             for token_and_tags in the_iter:
-                sent_str = '\t'.join(token_and_tags).encode('utf-8')
+                sent_str = '\t'.join(token_and_tags)
                 self.text_out.AppendText('%s\n' % sent_str)
             
             # line break after each sent

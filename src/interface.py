@@ -7,6 +7,7 @@ Main script for running the NLPNET GUI.
 import wx
 
 import main_panel
+import guiconfig
 
 # the whole system version
 VERSION = '1.0'
@@ -25,6 +26,10 @@ class MainWindow(wx.Frame):
         x, y = wx.DisplaySize()
         wx.Frame.__init__(self, parent=None, title=title, 
                           size=(0.7*x, 0.7*y))
+        
+        # task bar icon
+        ico = wx.Icon(guiconfig.ICON, wx.BITMAP_TYPE_ICO)
+        self.SetIcon(ico)
         
         self.CreateStatusBar()
         
@@ -51,7 +56,7 @@ class MainWindow(wx.Frame):
         '''
         Shows a splash screen. Simple as that.
         '''
-        bitmap = wx.Bitmap('../splash.bmp')
+        bitmap = wx.Bitmap(guiconfig.SPLASH)
         splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_PARENT,
                                  0, None)
         splash.Show()
@@ -62,7 +67,7 @@ class MainWindow(wx.Frame):
         info.SetName('NLPNET Graphical User Interface')
         info.SetVersion(VERSION)
         info.SetWebSite('https://github.com/erickrf/nlpnet')
-        with open('../desc.txt', 'r') as f:
+        with open(guiconfig.DESCRIPTION, 'r') as f:
             text = f.read()
         info.SetDescription(text)
         
