@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-Main script for running the NLPNET GUI.
+Main script for running the nlpnet GUI.
 '''
 
 import wx
@@ -64,7 +64,7 @@ class MainWindow(wx.Frame):
     
     def on_about(self, event):
         info = wx.AboutDialogInfo()
-        info.SetName('NLPNET Graphical User Interface')
+        info.SetName('nlpnet Graphical User Interface')
         info.SetVersion(VERSION)
         info.SetWebSite('https://github.com/erickrf/nlpnet')
         with open(guiconfig.DESCRIPTION, 'r') as f:
@@ -81,5 +81,5 @@ class MainWindow(wx.Frame):
 
 
 app = wx.App(False) 
-frame = MainWindow("NLPNET Graphical User Interface")
+frame = MainWindow("NLPNet Graphical User Interface")
 app.MainLoop()

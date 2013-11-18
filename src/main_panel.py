@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-from itertools import izip
 import wx
 
-import run
+import nlpnet
 
 class MainPanel(wx.Panel):
     '''
@@ -21,8 +20,9 @@ class MainPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.on_load, self.button_load)
         self.Bind(wx.EVT_BUTTON, self.on_save, self.button_save)
         
-        self.pos_tagger = run.tag_pos()
-        self.srl_tagger = run.tag_srl()
+        nlpnet.set_data_dir('data')
+        self.pos_tagger = nlpnet.POSTagger()
+        self.srl_tagger = nlpnet.SRLTagger()
     
     def _init_grid(self):
         '''
@@ -171,7 +171,7 @@ Be sure that your input file is encoded in UTF-8 or pure ASCII.',
             raise AttributeError('Unknown task: %s' % task)
         
         text = self.text_in.GetValue()
-        tagged_sents = run.tag_text(text, tagger)
+        tagged_sents = tagger.tag(text)
         if task == 'srl':
             self._display_result_srl(tagged_sents)
         else:
@@ -186,34 +186,36 @@ Be sure that your input file is encoded in UTF-8 or pure ASCII.',
         '''
         self.text_out.Clear()
         
-        for sent, tags in tagged_sents:
-            zipped = zip(sent, tags)
-            tagged_str = ' '.join('_'.join(token) for token in zipped)
+        for sent in tagged_sents:
+            tagged_str = ' '.join('_'.join(token) for token in sent)
             self.text_out.AppendText('%s\n' % tagged_str)
     
     def _display_result_srl(self, tagged_sents):
         '''
         Displays the resulting tagged text in the output area, in a 
         format fit for SRL, where tokens have one label per predicate.
-        @param tagged_sents: a tuple in the format (tokens, (predicates, tags))
-        The tokens list should be a simple list of strings.
-        The predicates list should have one item for each token.
-        The tags are a list of lists, one for each predicate,
-        containing the tags for the tokens. 
+        
+        :type tagged_sents: nlpnet.taggers.SRLAnnotatedSentence  
         '''
         self.text_out.Clear()
         for sent in tagged_sents:
-            tokens, preds_and_tags = sent
-            predicates, tags = preds_and_tags
-            max_verb_len = max(len(token) for token in predicates)
-            format_str = u'{:<%d}' % (max_verb_len + 1)
-            predicates = [format_str.format(pred) for pred in predicates]
             
-            # the asterisk tells izip to treat the elements in the list as separate arguments
-            the_iter = izip(tokens, predicates, *tags)
-            for token_and_tags in the_iter:
-                sent_str = '\t'.join(token_and_tags)
-                self.text_out.AppendText('%s\n' % sent_str)
+            # print the whole sentence first and then each arg structure
+            sentence_str = ' '.join(sent.tokens)
+            self.text_out.AppendText('%s\n' % sentence_str)
+            
+            for arg_struct in sent.arg_structures:
+                verb, args = arg_struct
+                
+                # print the verb in the first line and then the arguments
+                self.text_out.AppendText('  %s\n' % verb)
+                
+                for arg in args:
+                    arg_content = ' ' .join(args[arg])
+                    self.text_out.AppendText('    %s: %s\n' % (arg, arg_content))
+                
+                # line break after each arg structure
+                self.text_out.AppendText('\n')
             
             # line break after each sent
             self.text_out.AppendText('\n')
