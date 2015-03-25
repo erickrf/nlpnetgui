@@ -1,7 +1,4 @@
-This is a graphical interface for using the NLPNET tool, a neural network based classifier for 
+This is a graphical interface for using nlpnet, a neural network based classifier for 
 natural language processing.
-
-The classifier was trained on newswire text, so more frequent errors are expected when dealing with 
-other text genres. Performance in SRL is known to be far from optimal.
 
 Developed by Erick Rocha Fonseca (erickrfonseca@gmail.com).

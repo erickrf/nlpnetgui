@@ -10,7 +10,7 @@ from cx_Freeze import setup, Executable
 
 includes = []
 
-data_path = 'nlpnet-data'
+data_path = 'data'
 files_path = 'files'
 include_files = [(data_path, 'data'), (files_path, 'files')]
 
@@ -35,7 +35,7 @@ executable = Executable(script= 'src/interface.py',
 setup(
 
     version = "0.1",
-    description = "Graphical User Interface to the NLPNET software",
+    description = "Graphical User Interface to nlpnet",
     author = "Erick Fonseca",
     name = "NLPNet GUI",
     options = {"build_exe": {"includes": includes,

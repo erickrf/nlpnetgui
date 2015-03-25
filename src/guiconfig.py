@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-Configuration data for the NLPNET GUI
+Configuration data for the nlpnet GUI
 
 @author: Erick Fonseca
 '''

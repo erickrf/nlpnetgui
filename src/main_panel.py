@@ -7,7 +7,7 @@ import nlpnet
 
 class MainPanel(wx.Panel):
     '''
-    The main panel for the NLPNET application.
+    The main panel for the nlpnet application.
     There is a text area where text can be written or loaded,
     and another for displaying results.
     '''
@@ -21,8 +21,8 @@ class MainPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.on_save, self.button_save)
         
         nlpnet.set_data_dir('data')
-        self.pos_tagger = nlpnet.POSTagger()
-        self.srl_tagger = nlpnet.SRLTagger()
+        self.pos_tagger = nlpnet.POSTagger(language='pt')
+        self.srl_tagger = nlpnet.SRLTagger(language='pt')
     
     def _init_grid(self):
         '''
@@ -96,7 +96,6 @@ class MainPanel(wx.Panel):
             try:
                 with open(path, 'r') as f:
                     text = f.read()
-                print type(text)
                 utext = text.decode('utf-8')
             except UnicodeDecodeError:
                 dlg = wx.MessageDialog(self, 'Error trying to open file.\n\
@@ -161,7 +160,8 @@ Be sure that your input file is encoded in UTF-8 or pure ASCII.',
         '''
         Tags the input task according to the given task. The text
         must have already been loaded.
-        @param task: either 'pos' or 'srl'
+        
+        :param task: either 'pos' or 'srl'
         '''
         # try to use a cached tagger
         task = task.lower()
