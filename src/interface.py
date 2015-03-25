@@ -33,6 +33,7 @@ class MainWindow(wx.Frame):
         
         self.CreateStatusBar()
         
+        # menu "Program": contains info about the program and exit
         menu_program = wx.Menu()
         item_about = menu_program.Append(wx.ID_ABOUT, "&About", 
                                          "Information about this program")

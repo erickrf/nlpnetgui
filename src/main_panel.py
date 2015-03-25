@@ -12,13 +12,14 @@ class MainPanel(wx.Panel):
     and another for displaying results.
     '''
     
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent=parent)
+    def __init__(self, parent, *args, **kwargs):
+        wx.Panel.__init__(self, parent=parent, *args, **kwargs)
         self._init_grid()
         
         self.Bind(wx.EVT_BUTTON, self.on_run, self.button_run)
         self.Bind(wx.EVT_BUTTON, self.on_load, self.button_load)
         self.Bind(wx.EVT_BUTTON, self.on_save, self.button_save)
+        self.Bind(wx.EVT_SPINCTRL, self.on_change_font, self.font_spin)
         
         nlpnet.set_data_dir('data')
         self.pos_tagger = nlpnet.POSTagger(language='pt')
@@ -42,19 +43,8 @@ class MainPanel(wx.Panel):
         self.text_out = wx.TextCtrl(self,
                                    style=wx.TE_MULTILINE)
         
-        self.button_run = wx.Button(self, label="Run")
-        self.radio_pos = wx.RadioButton(self, label='POS', style=wx.RB_GROUP)
-        self.radio_srl = wx.RadioButton(self, label='SRL')
-        
-        button_box = wx.StaticBox(self, label="Options")
-        button_sizer = wx.StaticBoxSizer(button_box, wx.VERTICAL)
-        button_sizer.Add(self.button_run, 1, 
-                              flag=wx.ALIGN_CENTER | wx.EXPAND | wx.ALL,
-                              border=5)
-        button_sizer.Add(self.radio_pos, 1)
-        button_sizer.Add(self.radio_srl, 1)
-        
         main_sizer = wx.FlexGridSizer(rows=3, cols=3, vgap=10, hgap=5)
+        options_sizer = self._create_options_sizer()
         
         # top row, only labels
         main_sizer.Add(label_in)
@@ -68,7 +58,7 @@ class MainPanel(wx.Panel):
         
         # bottom row, text areas and the main command
         main_sizer.Add(self.text_in, 1, wx.EXPAND)
-        main_sizer.Add(button_sizer)
+        main_sizer.Add(options_sizer)
         main_sizer.Add(self.text_out, 1, wx.EXPAND)
         
         # the second row contains the text areas in the first and 
@@ -82,6 +72,51 @@ class MainPanel(wx.Panel):
         outer_sizer.Add(main_sizer, 1, wx.ALL | wx.EXPAND, border=10)
         
         self.SetSizer(outer_sizer)
+    
+    def _create_options_sizer(self):
+        '''
+        Creates a framed box containing a few options to adjust the 
+        program's behavior.
+        '''
+        # controls inside the box
+        self.button_run = wx.Button(self, label="Run")
+        self.radio_pos = wx.RadioButton(self, label='POS', style=wx.RB_GROUP)
+        self.radio_srl = wx.RadioButton(self, label='SRL')
+        
+        initial_font_size = self.text_in.GetFont().GetPointSize()
+        initial_font_size = str(initial_font_size)
+        label_font_size = wx.StaticText(self, label="Font size")
+        self.font_spin = wx.SpinCtrl(self, value=initial_font_size, size=(60, -1))
+        font_box = wx.StaticBox(self)
+        font_box_sizer = wx.StaticBoxSizer(font_box, wx.VERTICAL)
+        font_box_sizer.Add(label_font_size, 1)
+        font_box_sizer.Add(self.font_spin, 1, flag=wx.SHAPED | wx.FIXED_MINSIZE)
+        
+        # the box itself
+        options_box = wx.StaticBox(self, label="Options")
+        options_sizer = wx.StaticBoxSizer(options_box, wx.VERTICAL)
+        options_sizer.Add(self.button_run, 1, 
+                          flag=wx.ALIGN_CENTER | wx.EXPAND | wx.ALL,
+                          border=5)
+        options_sizer.Add(self.radio_pos, 1)
+        options_sizer.Add(self.radio_srl, 1)
+
+        parent_box = wx.StaticBox(self)
+        parent_sizer = wx.StaticBoxSizer(parent_box, wx.VERTICAL)
+        parent_sizer.Add(options_sizer, 1)
+        parent_sizer.Add(font_box_sizer, 0, flag=wx.EXPAND | wx.FIXED_MINSIZE)
+        
+        return parent_sizer
+        
+    def on_change_font(self, event):
+        '''
+        Changes the font used in the text boxes.
+        '''
+        size = self.font_spin.GetValue()
+        font = self.text_in.GetFont()
+        font.SetPointSize(size)
+        self.text_in.SetFont(font)
+        self.text_out.SetFont(font)
     
     def on_load(self, event):
         '''
